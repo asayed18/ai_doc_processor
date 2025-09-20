@@ -13,14 +13,9 @@ A checklist application for analyzing public tender documents using AI. This app
 ## Demo
 
 ### 🎥 Video Demo
-[![AI Document Processor Demo Video](docs/examples/demo.png)](docs/examples/demo.mov)
 
-**[Click to watch the demo video](docs/examples/demo.mov)** - See the AI Document Processor in action!
+https://github.com/user-attachments/assets/5f04e501-3a99-441e-bbc5-c7db7f453dcb
 
-### 📸 Screenshot
-![AI Document Processor Demo](docs/examples/demo.png)
-
-*Screenshot showing the AI Document Processor interface with document upload, question management, and results display*
 
 ## Technology Stack
 
