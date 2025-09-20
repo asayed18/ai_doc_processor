@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, File, Check } from 'lucide-react'
+import { Upload, File, Trash2 } from 'lucide-react'
 import { FileInfo } from '@/types'
 import { api } from '@/lib/api'
 
@@ -20,6 +20,7 @@ export default function FileUpload({
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [deletingFiles, setDeletingFiles] = useState<Set<number>>(new Set())
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -48,6 +49,35 @@ export default function FileUpload({
       onFileSelectionChange(selectedFiles.filter(id => id !== fileId))
     } else {
       onFileSelectionChange([...selectedFiles, fileId])
+    }
+  }
+
+  const handleDeleteFile = async (fileId: number) => {
+    if (!confirm('Are you sure you want to delete this file?')) {
+      return
+    }
+
+    setDeletingFiles(prev => new Set(prev).add(fileId))
+    
+    try {
+      await api.delete(`/api/v1/files/${fileId}`)
+      
+      // Remove from selected files if it was selected
+      if (selectedFiles.includes(fileId)) {
+        onFileSelectionChange(selectedFiles.filter(id => id !== fileId))
+      }
+      
+      // Refresh the file list
+      onUploadSuccess()
+    } catch (error) {
+      console.error('Failed to delete file:', error)
+      alert('Failed to delete file: ' + (error as Error).message)
+    } finally {
+      setDeletingFiles(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(fileId)
+        return newSet
+      })
     }
   }
 
@@ -88,34 +118,41 @@ export default function FileUpload({
             {files.map((file) => (
               <div
                 key={file.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 min-w-0"
               >
-                <div className="flex items-center space-x-3">
-                  <File className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {file.filename}
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <label className="flex items-center cursor-pointer mr-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes(file.id)}
+                      onChange={() => handleFileSelection(file.id)}
+                      aria-label={`Select ${file.original_filename}`}
+                      className="h-5 w-5 text-blue-600 bg-white border-2 border-gray-300 rounded-md focus:ring-blue-500 focus:ring-2 focus:ring-offset-1 hover:border-blue-400 transition-colors"
+                    />
+                  </label>
+                  <File className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-gray-900 truncate" title={file.original_filename}>
+                      {file.original_filename}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 whitespace-nowrap">
                       {new Date(file.upload_date).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleFileSelection(file.id)}
-                  className={`flex items-center space-x-1 px-3 py-1 rounded text-sm ${
-                    selectedFiles.includes(file.id)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {selectedFiles.includes(file.id) && (
-                    <Check className="h-4 w-4" />
-                  )}
-                  <span>
-                    {selectedFiles.includes(file.id) ? 'Selected' : 'Select'}
-                  </span>
-                </button>
+                <div className="flex items-center space-x-2 ml-2">
+                  <button
+                    onClick={() => handleDeleteFile(file.id)}
+                    disabled={deletingFiles.has(file.id)}
+                    className="flex items-center space-x-1 px-2 py-1 rounded text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete file"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {deletingFiles.has(file.id) && (
+                      <span className="text-xs">Deleting...</span>
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -20,6 +20,9 @@ class File(Base):
     file_path = Column(String(500), nullable=False)
     file_size = Column(Integer, nullable=False)
     content_type = Column(String(100))
+    md5_hash = Column(
+        String(32), nullable=True, index=True
+    )  # MD5 hash for deduplication
     anthropic_file_id = Column(
         String(255), nullable=True
     )  # For future Anthropic Files API integration

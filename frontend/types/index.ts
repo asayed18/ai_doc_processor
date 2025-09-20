@@ -1,6 +1,7 @@
 export interface FileInfo {
   id: number
   filename: string
+  original_filename: string
   anthropic_file_id: string
   upload_date: string
 }

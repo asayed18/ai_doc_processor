@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import Settings, get_settings
 from app.db.session import get_db
 from app.main import app
-from app.models.database import Base
+from app.models.database import Base, File, Question
 from app.services.ai_factory import get_ai_service
 from app.services.mock_ai_service import MockAIService
 
@@ -60,24 +60,24 @@ def test_engine(test_settings: TestSettings):
 def test_db_session(test_engine):
     """Create a test database session."""
     TestingSessionLocal = sessionmaker(
-        autocommit=False, 
-        autoflush=False, 
-        bind=test_engine
+        autocommit=False, autoflush=False, bind=test_engine
     )
-    
+
     # Create a transaction for this test
     connection = test_engine.connect()
     transaction = connection.begin()
-    
+
     # Create a session bound to this transaction
     session = TestingSessionLocal(bind=connection)
-    
+
     try:
         yield session
     finally:
         session.close()
         transaction.rollback()
         connection.close()
+
+
 @pytest.fixture(scope="function")
 def test_upload_dir(test_settings: TestSettings) -> Generator[Path, None, None]:
     """Create a temporary upload directory for testing."""
@@ -100,14 +100,27 @@ def mock_ai_service() -> MockAIService:
 
 
 @pytest.fixture(scope="function")
+def clean_db(test_db_session):
+    """Clean database before each test."""
+    # Delete all data from test database
+    test_db_session.query(File).delete()
+    test_db_session.query(Question).delete()
+    test_db_session.commit()
+
+
+@pytest.fixture(scope="function")
 def test_client(
-    test_db_session, test_settings: TestSettings, mock_ai_service, test_upload_dir
+    test_db_session,
+    test_settings: TestSettings,
+    mock_ai_service,
+    test_upload_dir,
+    clean_db,
 ):
     """Create test client with dependency overrides."""
 
     # Clear any existing overrides first
     app.dependency_overrides.clear()
-    
+
     # Override dependencies
     app.dependency_overrides[get_db] = lambda: test_db_session
     app.dependency_overrides[get_settings] = lambda: test_settings

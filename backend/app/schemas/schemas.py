@@ -22,16 +22,19 @@ class FileCreate(FileBase):
     file_path: str
     file_size: int
     content_type: Optional[str] = None
+    md5_hash: Optional[str] = None
 
 
 class FileResponse(FileBase):
     """Schema for file responses."""
 
     id: int
+    file_path: str
     file_size: int
-    content_type: Optional[str]
-    upload_date: datetime
+    content_type: Optional[str] = None
+    md5_hash: Optional[str] = None
     anthropic_file_id: Optional[str] = None
+    upload_date: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -46,8 +49,6 @@ class QuestionBase(BaseModel):
 
 class QuestionCreate(QuestionBase):
     """Schema for creating a question."""
-
-    pass
 
 
 class QuestionUpdate(BaseModel):

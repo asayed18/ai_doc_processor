@@ -20,9 +20,9 @@ router = APIRouter(prefix="/checklist", tags=["checklist"])
 
 @router.post("/", response_model=ChecklistResult)
 def process_checklist(
-    request: ChecklistRequest, 
+    request: ChecklistRequest,
     db: Session = Depends(get_db),
-    ai_service: AIService = Depends(get_ai_service)
+    ai_service: AIService = Depends(get_ai_service),
 ):
     """Process a checklist of questions and conditions against uploaded documents."""
     return ai_service.process_checklist(request, db)
@@ -30,9 +30,9 @@ def process_checklist(
 
 @router.post("/chat", response_model=ChatResponse)
 def chat_with_documents(
-    request: ChatRequest, 
+    request: ChatRequest,
     db: Session = Depends(get_db),
-    ai_service: AIService = Depends(get_ai_service)
+    ai_service: AIService = Depends(get_ai_service),
 ):
     """Chat with AI using uploaded documents as context."""
     result = ai_service.chat_with_documents(request.message, request.file_ids, db)

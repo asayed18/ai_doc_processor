@@ -2,6 +2,7 @@
 File service for handling file uploads and text extraction.
 """
 
+import hashlib
 import os
 import shutil
 import uuid
@@ -20,9 +21,23 @@ from ..schemas.schemas import FileCreate, FileResponse
 class FileService:
     """Service for handling file operations."""
 
-    def __init__(self):
+    def __init__(self, external_file_service=None):
+        """
+        Initialize FileService with optional external_file_service dependency.
+
+        Args:
+            external_file_service: Optional external file service for file cleanup operations.
+                                  If None, will use ClaudeFileService as default.
+        """
         self.upload_dir = Path(settings.upload_directory)
         self.upload_dir.mkdir(exist_ok=True)
+
+        if external_file_service is None:
+            from .claude_file_service import ClaudeFileService
+
+            external_file_service = ClaudeFileService()
+
+        self.external_file_service = external_file_service
 
     async def upload_file(self, file: UploadFile, db: Session) -> FileResponse:
         """
@@ -38,6 +53,28 @@ class FileService:
         # Validate file
         self._validate_file(file)
 
+        # Read file content once
+        content = await file.read()
+
+        # Calculate MD5 hash
+        md5_hash = hashlib.md5(content).hexdigest()
+
+        # Check if file with same MD5 hash already exists
+        existing_file = db.query(File).filter(File.md5_hash == md5_hash).first()
+        if existing_file:
+            # Return existing file info instead of creating duplicate
+            return FileResponse(
+                id=existing_file.id,
+                filename=existing_file.filename,
+                original_filename=existing_file.original_filename,
+                file_path=existing_file.file_path,
+                file_size=existing_file.file_size,
+                content_type=existing_file.content_type,
+                md5_hash=existing_file.md5_hash,
+                anthropic_file_id=existing_file.anthropic_file_id,
+                upload_date=existing_file.upload_date,
+            )
+
         # Generate unique filename
         file_id = str(uuid.uuid4())
         file_extension = Path(file.filename).suffix
@@ -47,7 +84,6 @@ class FileService:
         # Save file
         try:
             with open(file_path, "wb") as buffer:
-                content = await file.read()
                 buffer.write(content)
         except Exception as e:
             raise HTTPException(
@@ -61,6 +97,7 @@ class FileService:
             file_path=str(file_path),
             file_size=len(content),
             content_type=file.content_type,
+            md5_hash=md5_hash,
         )
 
         db_file = File(**file_create.model_dump())
@@ -114,6 +151,9 @@ class FileService:
         if not file:
             return False
 
+        # Store Claude file ID for cleanup
+        claude_file_id = file.anthropic_file_id
+
         # Delete physical file
         try:
             if os.path.exists(file.file_path):
@@ -125,6 +165,15 @@ class FileService:
         # Delete database record
         db.delete(file)
         db.commit()
+
+        # Clean up Claude file if it exists using dependency injection
+        if claude_file_id:
+            try:
+                self.external_file_service.delete_file(claude_file_id)
+            except Exception as e:
+                print(f"Failed to delete Claude file {claude_file_id}: {e}")
+                # Don't fail the local deletion if Claude cleanup fails
+
         return True
 
     def extract_pdf_text(self, file_path: str) -> str:

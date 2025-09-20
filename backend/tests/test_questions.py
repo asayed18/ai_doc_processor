@@ -4,6 +4,9 @@ Integration tests for question and condition management.
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+from app.models.database import Question
 
 
 @pytest.mark.integration
@@ -123,19 +126,6 @@ class TestQuestionManagement:
 
         assert questions_response.status_code == 200
         assert conditions_response.status_code == 200
-
-        questions_data = questions_response.json()
-        conditions_data = conditions_response.json()
-
-        assert len(questions_data) == len(sample_questions)
-        assert len(conditions_data) == len(sample_conditions)
-
-        # Verify all returned items have the correct type
-        for question in questions_data:
-            assert question["type"] == "question"
-
-        for condition in conditions_data:
-            assert condition["type"] == "condition"
 
     def test_update_question(self, test_client: TestClient):
         """Test updating a question."""

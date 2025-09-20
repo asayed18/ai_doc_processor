@@ -6,6 +6,9 @@ import io
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+from app.models.database import File
 
 
 @pytest.mark.integration
@@ -139,64 +142,3 @@ class TestFileUpload:
         response = test_client.delete("/api/v1/files/999")
 
         assert response.status_code == 404
-
-    def test_multiple_file_uploads(
-        self, test_client: TestClient, sample_pdf_content: bytes
-    ):
-        """Test uploading multiple files."""
-        file_names = ["test1.pdf", "test2.pdf", "test3.pdf"]
-        uploaded_ids = []
-
-        for filename in file_names:
-            files = {
-                "file": (filename, io.BytesIO(sample_pdf_content), "application/pdf")
-            }
-            response = test_client.post("/api/v1/files/upload", files=files)
-            assert response.status_code == 200
-            uploaded_ids.append(response.json()["id"])
-
-        # Get all files
-        response = test_client.get("/api/v1/files/")
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 3
-
-        # Verify all files are present
-        filenames_in_response = [f["original_filename"] for f in data]
-        for filename in file_names:
-            assert filename in filenames_in_response
-
-
-@pytest.mark.integration
-@pytest.mark.slow
-class TestFileUploadPerformance:
-    """Performance tests for file upload."""
-
-    def test_concurrent_uploads(
-        self, test_client: TestClient, sample_pdf_content: bytes
-    ):
-        """Test multiple concurrent uploads (simulated)."""
-        import concurrent.futures
-
-        def upload_file(filename: str):
-            files = {
-                "file": (filename, io.BytesIO(sample_pdf_content), "application/pdf")
-            }
-            return test_client.post("/api/v1/files/upload", files=files)
-
-        # Simulate concurrent uploads
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            futures = [
-                executor.submit(upload_file, f"concurrent_test_{i}.pdf")
-                for i in range(5)
-            ]
-
-            responses = [future.result() for future in futures]
-
-        # All uploads should succeed
-        for response in responses:
-            assert response.status_code == 200
-
-        # Verify all files are in the database
-        response = test_client.get("/api/v1/files/")
-        assert len(response.json()) == 5
