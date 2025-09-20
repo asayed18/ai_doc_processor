@@ -24,7 +24,17 @@ help:
 	@echo ""
 	@echo "  make stop          - Stop all running services"
 	@echo "  make clean         - Clean node_modules and Python cache"
-	@echo "  make test          - Run tests (when available)"
+	@echo ""
+	@echo "🧪 Testing:"
+	@echo "  make test          - Run all tests"
+	@echo "  make test-unit     - Run unit tests only"
+	@echo "  make test-integration - Run integration tests only"
+	@echo "  make test-api      - Run API tests only"
+	@echo "  make test-fast     - Run fast tests (exclude slow tests)"
+	@echo "  make test-slow     - Run slow tests only"
+	@echo "  make test-verbose  - Run tests with verbose output"
+	@echo "  make test-coverage - Run tests with coverage report"
+	@echo "  make test-file FILE=filename - Run tests in specific file"
 	@echo "  make shell         - Enter pipenv shell for backend development"
 	@echo ""
 	@echo "🔧 Process Management:"
@@ -165,8 +175,48 @@ clean:
 
 # Run tests (placeholder for future implementation)
 test:
-	@echo "🧪 Running tests..."
-	@echo "Tests not yet implemented"
+	@echo "🧪 Running all tests..."
+	@cd backend && pipenv run pytest
+
+test-unit:
+	@echo "🧪 Running unit tests..."
+	@cd backend && pipenv run pytest -m unit
+
+test-integration:
+	@echo "🧪 Running integration tests..."
+	@cd backend && pipenv run pytest -m integration
+
+test-api:
+	@echo "🧪 Running API tests..."
+	@cd backend && pipenv run pytest -m api
+
+test-fast:
+	@echo "🧪 Running fast tests (excluding slow tests)..."
+	@cd backend && pipenv run pytest -m "not slow"
+
+test-slow:
+	@echo "🧪 Running slow tests..."
+	@cd backend && pipenv run pytest -m slow
+
+test-verbose:
+	@echo "🧪 Running tests with verbose output..."
+	@cd backend && pipenv run pytest -v
+
+test-coverage:
+	@echo "🧪 Running tests with coverage report..."
+	@cd backend && pipenv run pytest --cov=app --cov-report=html --cov-report=term
+
+test-watch:
+	@echo "🧪 Running tests in watch mode..."
+	@cd backend && pipenv run pytest-watch
+
+test-file:
+	@if [ -z "$(FILE)" ]; then \
+		echo "❌ Please provide a test file: make test-file FILE=test_something.py"; \
+		exit 1; \
+	fi
+	@echo "🧪 Running tests in file: $(FILE)"
+	@cd backend && pipenv run pytest tests/$(FILE)
 
 # Development helpers
 check-backend:

@@ -40,7 +40,7 @@ class FileResponse(FileBase):
 class QuestionBase(BaseModel):
     """Base question schema."""
 
-    text: str = Field(..., min_length=1, max_length=1000)
+    text: str = Field(..., min_length=1, max_length=50000)
     type: str = Field(..., pattern="^(question|condition)$")
 
 
@@ -73,7 +73,7 @@ class QuestionResponse(QuestionBase):
 class ChecklistRequest(BaseModel):
     """Schema for checklist processing requests."""
 
-    file_ids: List[int] = Field(..., min_items=1)
+    file_ids: List[int] = Field(default_factory=list)
     question_ids: Optional[List[int]] = None
     questions: Optional[List[str]] = None
     conditions: Optional[List[str]] = None
@@ -110,7 +110,7 @@ class ProcessingSessionResponse(BaseModel):
 class ChatRequest(BaseModel):
     """Schema for chat requests."""
 
-    message: str = Field(..., min_length=1, max_length=5000)
+    message: str = Field(..., max_length=50000)
     file_ids: List[int] = Field(default_factory=list)
 
 

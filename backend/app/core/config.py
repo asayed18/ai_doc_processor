@@ -49,7 +49,7 @@ class Settings(BaseModel):
     allowed_file_types: List[str] = [".pdf"]
 
     # Claude Configuration
-    claude_model: str = "claude-3-5-sonnet-20241022"
+    claude_model: str = "claude-sonnet-4-20250514"
     claude_max_tokens: int = 4000
 
     def __init__(self, **kwargs):
