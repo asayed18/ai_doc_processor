@@ -18,8 +18,10 @@ trap cleanup SIGINT SIGTERM
 # Start backend
 echo "📡 Starting backend (FastAPI)..."
 cd backend
-pip install -r requirements.txt >/dev/null 2>&1
-python main.py &
+pipenv install >/dev/null 2>&1
+echo "Running database migrations..."
+pipenv run alembic upgrade head >/dev/null 2>&1
+pipenv run python main.py &
 BACKEND_PID=$!
 cd ..
 

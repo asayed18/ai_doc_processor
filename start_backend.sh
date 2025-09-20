@@ -1,5 +1,7 @@
 #!/bin/bash
 echo "Starting AI Document Processor Backend..."
 cd backend
-python -m pip install -r requirements.txt
-python main.py
+pipenv install
+echo "Running database migrations..."
+pipenv run alembic upgrade head
+pipenv run python main.py

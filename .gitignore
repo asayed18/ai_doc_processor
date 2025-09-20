@@ -3,3 +3,54 @@ frontend/node_modules
 .DS_Store
 frontend/.next
 data
+**/__pycache__
+
+# Environment and configuration files
+.env
+*.log
+
+# Database files
+*.db
+backend/documents.db
+
+# Process ID files
+.backend.pid
+.frontend.pid
+
+# Alembic (keep structure but ignore local database)
+backend/alembic/versions/
+!backend/alembic/versions/.gitkeep
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Alembic
+# Keep alembic directory structure but ignore temporary files
+backend/alembic/__pycache__/
+backend/alembic/versions/__pycache__/
+
+# Backend uploads
+backend/uploads/
+uploads/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+backend/*.log

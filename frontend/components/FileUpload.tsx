@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Upload, File, Check } from 'lucide-react'
 import { FileInfo } from '@/types'
+import { api } from '@/lib/api'
 
 interface FileUploadProps {
   onUploadSuccess: () => void
@@ -31,19 +32,10 @@ export default function FileUpload({
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch('http://localhost:8000/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (response.ok) {
-        onUploadSuccess()
-        // Reset file input
-        event.target.value = ''
-      } else {
-        const error = await response.json()
-        setUploadError(error.detail || 'Upload failed')
-      }
+      await api.post('/api/v1/files/upload', formData)
+      onUploadSuccess()
+      // Reset file input
+      event.target.value = ''
     } catch (error) {
       setUploadError('Upload failed: ' + (error as Error).message)
     } finally {

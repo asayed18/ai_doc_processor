@@ -17,7 +17,7 @@ export default function Home() {
 
   const fetchFiles = async () => {
     try {
-      const data = await api.get('/files')
+      const data = await api.get('/api/v1/files')
       setFiles(data)
     } catch (error) {
       console.error('Failed to fetch files:', error)
@@ -27,7 +27,7 @@ export default function Home() {
 
   const fetchQuestions = async () => {
     try {
-      const data = await api.get('/questions')
+      const data = await api.get('/api/v1/questions')
       setQuestions(data)
     } catch (error) {
       console.error('Failed to fetch questions:', error)

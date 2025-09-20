@@ -10,6 +10,12 @@ A checklist application for analyzing public tender documents using AI. This app
 - **File Selection**: Select specific documents for processing
 - **Real-time Results**: View question answers and condition evaluations in a user-friendly interface
 
+## Demo
+
+![AI Document Processor Demo](docs/examples/demo.png)
+
+*Screenshot showing the AI Document Processor interface with document upload, question management, and results display*
+
 ## Technology Stack
 
 ### Backend
@@ -40,8 +46,53 @@ A checklist application for analyzing public tender documents using AI. This app
 ## Prerequisites
 
 - Python 3.8+
+- pipenv (for Python dependency management)
 - Node.js 18+
 - npm or yarn
+
+## Quick Start
+
+The fastest way to get started is using the included Makefile:
+
+```bash
+# Clone and navigate to the project
+git clone <your-repository-url>
+cd ai_doc_processor
+
+# Full setup (install dependencies + run migrations)
+make setup
+
+# Start both services
+make dev
+```
+
+This will install all dependencies, run database migrations, and start both the backend (http://localhost:8000) and frontend (http://localhost:3000) automatically.
+
+For more options, run `make help` to see all available commands.
+
+## Database Management
+
+This project uses Alembic for database migrations. Common database commands:
+
+```bash
+# Run pending migrations
+make migrate
+
+# Create a new migration
+make migration MESSAGE="add user table"
+
+# Auto-generate migration from model changes
+make migration-auto MESSAGE="update user model"
+
+# Show current migration version
+make db-current
+
+# Show migration history
+make db-history
+
+# Downgrade by one revision
+make db-downgrade
+```
 
 ## Installation & Setup
 
@@ -57,11 +108,14 @@ cd ai_doc_processor
 # Navigate to backend directory
 cd backend
 
-# Install Python dependencies
-pip install -r requirements.txt
+# Install Python dependencies with pipenv
+pipenv install
+
+# Run database migrations
+pipenv run alembic upgrade head
 
 # Start the backend server
-python main.py
+pipenv run python main.py
 ```
 
 The backend server will start on `http://localhost:8000`
@@ -81,7 +135,29 @@ npm run dev
 
 The frontend will be available at `http://localhost:3000`
 
-### 4. Alternative: Quick Start Scripts
+### 4. Alternative: Using Makefile (Recommended)
+
+Use the included Makefile for easier project management:
+
+```bash
+# Install all dependencies
+make install
+
+# Start both services concurrently
+make dev
+
+# Or start services individually:
+make backend    # Start backend only
+make frontend   # Start frontend only
+
+# Stop all services
+make stop
+
+# See all available commands
+make help
+```
+
+### 5. Legacy: Quick Start Scripts
 
 Make the scripts executable:
 ```bash
@@ -227,16 +303,25 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 ## Production Deployment
 
-### Backend
+### Using Makefile (Recommended)
 ```bash
-# Install production dependencies
-pip install gunicorn
-
-# Run with gunicorn
-gunicorn main:app --host 0.0.0.0 --port 8000
+# Build and start production services
+make build
+make prod-backend   # Terminal 1
+make prod-frontend  # Terminal 2
 ```
 
-### Frontend
+### Manual Commands
+#### Backend
+```bash
+# Install production dependencies with pipenv
+pipenv install
+
+# Run with gunicorn
+pipenv run gunicorn main:app --host 0.0.0.0 --port 8000
+```
+
+#### Frontend
 ```bash
 # Build for production
 npm run build

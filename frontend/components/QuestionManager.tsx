@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, Trash2, MessageCircle, CheckCircle } from 'lucide-react'
 import { Question, QuestionCreate } from '@/types'
+import { api } from '@/lib/api'
 
 interface QuestionManagerProps {
   questions: Question[]
@@ -19,21 +20,13 @@ export default function QuestionManager({ questions, onQuestionsChange }: Questi
 
     setAdding(true)
     try {
-      const response = await fetch('http://localhost:8000/questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: newQuestion.trim(),
-          type: questionType,
-        }),
+      await api.post('/api/v1/questions', {
+        text: newQuestion.trim(),
+        type: questionType,
       })
-
-      if (response.ok) {
-        setNewQuestion('')
-        onQuestionsChange()
-      }
+      
+      setNewQuestion('')
+      onQuestionsChange()
     } catch (error) {
       console.error('Failed to add question:', error)
     } finally {
@@ -43,13 +36,8 @@ export default function QuestionManager({ questions, onQuestionsChange }: Questi
 
   const handleDeleteQuestion = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/questions/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        onQuestionsChange()
-      }
+      await api.delete(`/api/v1/questions/${id}`)
+      onQuestionsChange()
     } catch (error) {
       console.error('Failed to delete question:', error)
     }

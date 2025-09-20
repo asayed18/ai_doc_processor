@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Play, CheckCircle, X, Clock } from 'lucide-react'
 import { Question, ChecklistResult } from '@/types'
+import { api } from '@/lib/api'
 
 interface ChecklistProcessorProps {
   questions: Question[]
@@ -38,26 +39,14 @@ export default function ChecklistProcessor({ questions, selectedFiles }: Checkli
         .filter(q => q.type === 'condition')
         .map(q => q.text)
 
-      const response = await fetch('http://localhost:8000/checklist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: 'Process checklist items',
-          file_ids: selectedFiles,
-          questions: questionTexts,
-          conditions: conditionTexts,
-        }),
+      const response = await api.post('/api/v1/checklist', {
+        message: 'Process checklist items',
+        file_ids: selectedFiles,
+        questions: questionTexts,
+        conditions: conditionTexts,
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        setResult(data)
-      } else {
-        const errorData = await response.json()
-        setError(errorData.detail || 'Processing failed')
-      }
+      
+      setResult(response)
     } catch (error) {
       setError('Processing failed: ' + (error as Error).message)
     } finally {
